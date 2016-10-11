@@ -1,0 +1,99 @@
+%Almost all Android apps request permissions from the user. The requested permissions define the capability of the app, and the user will gause the app's capability and decide whether to install the app or not\cite{grace2012systematic}. However, at install time, the user has very limited information about the app, typically, a natural language description on the app's functionality and a list of requested permissions. Such information is often not straightforward for the user to make installation decisions. There are primarily two difficulties faced by the user: (1) understanding how the capability is used under what context, and (2) knowing whether the app leverages the capability to do additional malicious things. 
+
+%To alleviate these problems, we propose a tool that leverages program analysis and natural language processing techniques to recover the context information of permission usage at a user-perceivable level to better assist the user making installation decisions. 
+Our proposed approach is composed of two core components: \emph{context
+    recovery} and \emph{malicious behavior checking}. 
+The goal of the first
+component is to recover the context information to help users or tools to better understand
+the use of a permission. 
+%To minimize user effort, we provide the context
+%information at a user-perceivable level via natural language sentences, such as
+%``whenever starting the app, automatically send out location information.''
+%Compared to app descriptions, such information is more detailed and can be directly linked to the security behaviors.
+%straightforward and
+%directly related to security.
+%\wing{Unclear what directly related to security here means. Providing such
+%    information also gives users an unbiased review of permission usage.}
+%However, recovering context information is not
+%enough, because it is possible that the app leverages permissions for unexpected
+%malicious behavior. For this concern, 
+Our second component aims to check these
+malicious behaviors and report back to the user in natural language.
+
+\begin{table*}[ht!]
+    \begin{center}
+        \begin{small}
+            \begin{tabular}{|l|l|l|l|l|}
+                \hline  & Term 1 & Term 2 & Term 3 & Term 4\\
+                \hline Tasks & Permission usage study, & Context recovery, &  & Evaluation, \\
+                & Call graph construction & Explanation synthesis & Inconsistency checking & Paper writing \\
+                \hline
+            \end{tabular}
+        \end{small}
+    \end{center}
+    
+    \caption{Research timeline (a term represents three months)}
+    \label{tbl:plan}
+    \vspace*{-5ex}
+\end{table*}
+
+\subsection{Recovering Context Information}
+The context recovery component takes as input the bytecode of the app, and outputs a list of natural language sentences explaining how a permission is used in a context. To generate the sentences, the component takes three major steps: permission refinement, context recovery, and natural language synthesis.
+
+\textbf{Permission refinement.}
+A single Android permission often corresponds to a list of low-level capabilities. For example, by granting the permission "READ\_PHONE\_STATE", the app will have the capabilities to read Device Id, VoiceMail Number, Sim Serial Number, Device Software Version, etc. 
+The coarse granularity of permissions may cause confusion when making security decisions because a single permission often represents multiple low-level capabilities. 
+In this step, we refine the permission used in the app by detecting which capability is actually leveraged. 
+One feasible way to get the finer-granularity capability is to utilize the method that directly uses the permission (we call it a  permission-invoking method). We first employ Soot\cite{fritz2013highly} to build an intra-app static call graph. 
+Given a permission, we identify the permission-invoking method within the call graph using existing techniques \cite{au2012pscout} that build a mapping between the API and the used permission. 
+These permission-invoking methods are typically Android library APIs, which have meaningful names and detailed descriptions in API documents. 
+Then we can infer the used resource/capability by analyzing the API names or the API descriptions. 
+For example, we can extract the list of low-level capabilities for a given permission (represented as one keyword per capability), and then use keyword searching against the API name or document to see which capability the API corresponds to.
+
+\textbf{Context recovery.}
+Our definition of context includes two important characteristics that determine the invocations of security-sensitive method calls: \textit{activation events} and \textit{context factors}.
+Such definition represents a set of essential elements for decision making in app inspection.
+
+The activation events are the \textit{external events that trigger security-sensitive method calls}. 
+The external events include UI events (events triggered by operations on app's user interface), System events (events initiated by system state changes (e.g., receiving SMS)), and SystemUI events (events triggered by operations on the mobile system or device interface (e.g., pressing HOME or BACK button)).
+Activation events connect security-sensitive behaviors to the behavior's ``initiator'' in the external environment (e.g., users, system), as the events are triggered when the external environment changes or reaches a certain state.
+
+The context factors are \textit{environmental attributes that decide whether the security-sensitive method calls will be invoked or not}. The values of context factors can affect control flows from
+entry points of the activation events to the security-sensitive
+method call. By combining the context
+factors with corresponding activation events of the security sensitive
+method call, we generate the complete context tuple.
+
+%After refining the permission to a specific low-level capability, we then explain how the capability is used via recovering the context of the capability usage. The key idea of context recovery is to map the low-level permission-invoking API to a high-level user-perceivable action so that the user may comprehend what the action is and under what context the action is done. We start from the permission-invoking API (identified in the previous step) in the call graph, and trace backward to the entry point of the call graph. The entry point is either a GUI handler or an Android component life cycle method.
+%
+%For entry point that is an Android component life cycle method, the permission usage often corresponds to the \emph{system level} context, which represents common phone-related system events, such as incoming message/phone call, device start. These high-level events can be easily understood by the user. Hence, in this case, we only need to identify the system event and associate it with the permission-invoking method. For example, if the system event is that the \emph{android.intent.action.PHONE\_STATE} changes to \emph{CALL\_STATE\_RINGING}, meaning an incoming phone call, and the permission-invoking method \emph{getContactInfo(Contact)} uses the permission \emph{android.permission.READ\_CONTACTS}, meaning reading the contact information, our explanation could be "whenever there is an incoming phone call, the app will read the contact information". To identify the system event, we get the class name of the life cycle method from the call graph, locate the corresponding Android component of the class in the manifest file, and obtain the system event directly from the component's action attribute.
+%
+%If the entry point is a GUI handler, then the permission usage context is typically related to some GUI action, which is \emph{app specific}. To explain the context, we need to figure out the semantics of the GUI action. This task could be challenging because extracting GUI semantics is not as straightforward as identifying the system event. For example, if the GUI handler is onClick of a button, analyzing only the button may not give you any information on what the click action means. Hence, we extend our analysis to a bigger picture (the entire widget that the button belongs to), and extract semantics from the widget because the widget is often self-contained and represent certain semantics. To achieve this task, we first analyze the program to get the corresponding activity class of the GUI handler. From the code of this class, we can find the layout file for the screen and consequently locate the corresponding widget on the screen. Typically, a widget contains some text contents describing its functionality, and a group of buttons or check boxes to control the flow in the widget. Based on this observation, we use natural language processing techniques to extract the semantics from the text contents. Since we already know which button/box is clicked/checked from the GUI handler method, we can then incorporate this control flow information into the extracted semantics, and finally recover the permission usage context.
+
+\textbf{Natural language synthesis.}
+Finally, to present security behavior at a user-perceivable level, we synthesize natural language sentences to describe the context of the permission usage. 
+We employ the pre-defined natural-language templates to form the skeletons of the sentences, and then automatically fill in the templates with the information obtained from the previous analysis.
+We have conducted a preliminary study on the permission usage of Android apps and find that there are several common patterns of permission usage. 
+Based on these patterns, we can define templates for the permission usage context, such as making phone calls, sending emails, searching for nearby shops, as well as some UI actions. Once we generate the templates, we map the previous analysis results to each blank and complete the templates. 
+If parts of the results are missing due to the inefficiency of the analysis, we will present user all the information that we can obtain using partial templates.
+%\wing{What if a template was not able to be completely filled? What if no
+%    templates were completely filled?}
+
+\subsection{Checking Malicious Behaviors}
+To prevent the app from performing malicious behaviors with granted capabilities, our second component compares the actual security behaviors with the expected app behaviors to see whether the app's behavior is consistent with the expectation.
+
+%employs static taint analysis~\cite{newsome2005dynamic} to track how the sensitive information flows, and then 
+%\textbf{Static taint analysis}
+%In order to do static analysis, we first employ \emph{ded}~\cite{enck2011study} to decompile the binaries to source code or some intermediate representation. We then perform taint analysis to track the flow of the sensitive information. The sensitive information includes the side effects (e.g., return values, modified variables) of the permission-invoking method, and we treat the method using to obtain the information as the source of taint analysis.
+%%\wing{is the permission-invoking method the source or the sensitive information?}
+%For each source, we compute both the data (explicit) flow and control (implicit) flow to the sinks, where the sensitive information leaves the app. For each sink, we find the wrapper method of the sink, and similarly repeat our previous context recovery step for this method and synthesize natural language descriptions explaining the context of using the sensitive information.
+
+%\textbf{Consistency checking} 
+In the previous step, the synthesized natural language descriptions are not immediately sent to the user, but are first compared to the app description. 
+We report only inconsistencies between synthesized descriptions and app descriptions as possible malicious behaviors. 
+To achieve this goal, we first match sentences describing the same permission usage from both the synthesized description and the app description. Such matching can be done via our previous tool
+WHYPER~\cite{whyper}, which leverages natural language processing techniques to locate sentences that describe a given permission in the app description. 
+For a synthesized sentence, if we cannot locate the corresponding sentences in the app description, then it indicates that there are potential malicious behaviors in the app, and we report the additional behaviors to the user. 
+Otherwise, if we locate the corresponding sentence in the app description, we continue to check whether
+the synthesized sentence is semantically consistent with the sentence in the app. 
+To check consistency, we plan to adapt the existing documentation/sentence similarity-based techniques~\cite{sensim,docsim} by assigning more weights to permission-related keywords based on our knowledge graph~\cite{whyper}, and incorporate semantic information that we obtain via WHYPER, such as dependency information and part-of-speech tags. If any inconsistency is found, we report the inconsistent behavior to the user. Otherwise, we notify the user that the app is safe.

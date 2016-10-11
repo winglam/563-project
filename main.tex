@@ -1,0 +1,61 @@
+\documentclass{article}
+\usepackage[english]{babel}
+\usepackage{blindtext}
+\usepackage{multicol}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[top=1.0in,bottom=1.0in,left=0.75in,right=0.75in]{geometry}
+\usepackage{hyperref}
+\usepackage{babel}
+\usepackage[
+    natbib=true,
+    style=numeric,
+    sorting=none
+]{biblatex}
+\bibliography{wei,phone,enck,yangtse,yangtse-xie,rahul,paper,andow}
+
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+
+\title{\vspace{-3.0cm}CS563: Advanced Computer Security \\ Research Proposal}
+\author{Wing Lam, Davis Li \\
+\{\href{mailto:winglam2@illinois.edu}{winglam2},
+\href{mailto:dli46@illinois.edu}{dli46}\}@illinois.edu}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{multicols}{2}
+
+\begin{abstract}
+\blindtext
+\end{abstract}
+
+
+\section{Introduction}
+\input{introduction}
+\label{introduction}
+
+\section{Background}
+\input{background}
+\label{background}
+
+\section{Related Work}
+\input{related-work}
+\label{related-work}
+
+\section{Proposed Approach}
+\input{proposed-approach}
+\label{proposed-approach}
+
+\section{Research Plan}
+\input{proposed-plan}
+\label{proposed-plan}
+
+\printbibliography
+
+\end{multicols}
+\end{document}
