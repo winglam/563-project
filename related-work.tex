@@ -1,2 +1,23 @@
-\blindtext
-\cite{peskin1995introduction}
+User interface structure has also been the focus of prior
+work~\cite{Azim2013, yang-ase15,yang2013grey}. GATOR~\cite{yang-ase15}
+is a toolkit for Android that perform static reference analysis for GUI
+objects and control-flow analysis for GUI related event-callbacks to
+obtain GUI layout hierarchy and GUI transition graph for test
+generation. A\textsuperscript{3}E~\cite{Azim2013} leverages static
+taint-analysis to capture and model transitions between app's activity
+from app's bytecode without modifying OS system and app's source code to
+explore Android app's activities and to achieve high coverage. Their
+work focus on analyzing event-callbacks and generating event sequences
+without generating data for input widgets on a GUI screen, which normally
+has low coverage for real-world application. 
+
+There are many great research works that leverage NLP technique to assess security risk and 
+identify malicious behaviors~\cite{gtgz:14,hlxw:15,Huang:2014,nmyz:15,pxy:13}.  
+WHYPER~\cite{pxy:13} and Chabada~\cite{gtgz:14} both apply NLP technique on apps' 
+description to abstract user's expectation, and further evaluate the coherence between 
+expectation and implementation. In particular, WHYPER examines whether sensitive 
+permissions declared by the apps are needed regarding apps' description. Chabada examines 
+apps' API usage regarding their descriptions. AsDroid check the coherence between text of on 
+the GUI associated with event callbacks and its triggered sensitive behavior. Our technique also 
+complement their works by providing complete contextual information of GUI to further achieve 
+context awareness to protect user's privacy.  
